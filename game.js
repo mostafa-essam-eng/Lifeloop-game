@@ -10,6 +10,8 @@ const ui = {
 
 let scene, camera, renderer, clock, player, yaw=0, pitch=0, pointerLocked=false;
 let started=false, soundOn=true, activeStation=null, nearby=null, currentHouse=null, referenceVisible=false;
+const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window);
+let mobileMoveX=0, mobileMoveY=0, mobileRun=false, lookPointerId=null, lastLookX=0, lastLookY=0;
 const keys={};
 const resources={oxygen:82,water:74,energy:90};
 let foodSupply=55, missionDay=0, missionScenario=null;
@@ -99,9 +101,10 @@ function init(){
   window.addEventListener('resize',onResize);
   document.addEventListener('keydown',onKeyDown);
   document.addEventListener('keyup',e=>keys[e.code]=false);
-  renderer.domElement.addEventListener('click',()=>{if(started&&!ui.station.classList.contains('hidden'))return; if(started)renderer.domElement.requestPointerLock();});
+  renderer.domElement.addEventListener('click',()=>{if(started&&!ui.station.classList.contains('hidden'))return; if(started&&!isTouchDevice)renderer.domElement.requestPointerLock();});
   document.addEventListener('pointerlockchange',()=>{pointerLocked=document.pointerLockElement===renderer.domElement;});
   document.addEventListener('mousemove',e=>{if(pointerLocked){yaw-=e.movementX*.0022;pitch-=e.movementY*.0018;pitch=Math.max(-.65,Math.min(.65,pitch));}});
+  setupMobileControls();
   $('start-btn').onclick=startGame;
   $('how-btn').onclick=openHelp;
   $('sources-btn').onclick=openSources;
@@ -519,6 +522,39 @@ function makeDust(){
   const points=new THREE.Points(geo,new THREE.PointsMaterial({color:0xf3b18b,size:.085,transparent:true,opacity:.5}));
   scene.add(points);dust.push(points);
 }
+function setupMobileControls(){
+  if(!isTouchDevice)return;
+  const stick=$('mobile-stick'), knob=$('mobile-stick-knob'), canvas=renderer.domElement;
+  let stickPointer=null;
+  const updateStick=(e)=>{
+    const rect=stick.getBoundingClientRect();
+    const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+    const max=rect.width*.34;
+    let dx=e.clientX-cx, dy=e.clientY-cy;
+    const len=Math.hypot(dx,dy); if(len>max){dx=dx/len*max;dy=dy/len*max;}
+    knob.style.transform=`translate(${dx}px,${dy}px)`;
+    mobileMoveX=dx/max; mobileMoveY=-dy/max;
+  };
+  stick.addEventListener('pointerdown',e=>{e.preventDefault();stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);});
+  stick.addEventListener('pointermove',e=>{if(e.pointerId===stickPointer){e.preventDefault();updateStick(e);}});
+  const releaseStick=e=>{if(e.pointerId===stickPointer){stickPointer=null;mobileMoveX=0;mobileMoveY=0;knob.style.transform='translate(0,0)';}};
+  stick.addEventListener('pointerup',releaseStick);stick.addEventListener('pointercancel',releaseStick);
+  canvas.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch'||!started||!$('mobile-controls')||$('mobile-controls').classList.contains('hidden'))return;if(e.clientX<innerWidth*.38||e.clientY>innerHeight*.86)return;lookPointerId=e.pointerId;lastLookX=e.clientX;lastLookY=e.clientY;canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(e.pointerId!==lookPointerId)return;const dx=e.clientX-lastLookX,dy=e.clientY-lastLookY;lastLookX=e.clientX;lastLookY=e.clientY;yaw-=dx*.004; pitch=Math.max(-.65,Math.min(.65,pitch-dy*.003));});
+  const endLook=e=>{if(e.pointerId===lookPointerId)lookPointerId=null;};canvas.addEventListener('pointerup',endLook);canvas.addEventListener('pointercancel',endLook);
+  const bindHold=(id,down,up=()=>{})=>{const el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();down();});['pointerup','pointercancel','pointerleave'].forEach(type=>el.addEventListener(type,e=>{e.preventDefault();up();}));};
+  bindHold('mobile-run',()=>{mobileRun=true;$('mobile-run').classList.add('active');},()=>{mobileRun=false;$('mobile-run').classList.remove('active');});
+  $('mobile-jump').addEventListener('pointerdown',e=>{e.preventDefault();if(started&&!activeStation&&!photoMode&&isGrounded&&!currentHouse&&stamina>10){velocityY=JUMP_FORCE;isGrounded=false;stamina=Math.max(0,stamina-12);playBreathSound(true);}});
+  $('mobile-use').addEventListener('pointerdown',e=>{e.preventDefault();mobileInteract();});
+  $('mobile-flash').addEventListener('pointerdown',e=>{e.preventDefault();if(!started||activeStation)return;flashlightOn=!flashlightOn;flashlight.visible=flashlightOn;$('mobile-flash').classList.toggle('active',flashlightOn);notify(flashlightOn?'Helmet Flashlight ON':'Helmet Flashlight OFF');});
+}
+function mobileInteract(){
+  if(activeStation){toggleStationReference();return;}
+  if(currentHouse){leaveHouse();return;}
+  if(nearby){if(nearby.type==='house')enterHouse(nearby);else openStation(nearby);return;}
+  notify('Move closer to a station to interact.');
+}
+
 function startGame(){
  started=true;missionDay=0;foodSupply=55;activated.clear();deferredEffects.length=0;
  initAmbientAudio();
@@ -533,15 +569,15 @@ function startGame(){
  $('scenario-label').textContent='SCENARIO: '+missionScenario.name+' — '+missionScenario.description;
  $('food-supply-label').textContent='Food reserve: '+foodSupply+' units';
  updateResourceUI();updateMission();
- ui.start.classList.add('hidden');ui.hud.classList.remove('hidden');ui.mission.classList.remove('hidden');ui.location.classList.remove('hidden');ui.controls.classList.remove('hidden');renderer.domElement.requestPointerLock();
+ ui.start.classList.add('hidden');ui.hud.classList.remove('hidden');ui.mission.classList.remove('hidden');ui.location.classList.remove('hidden');ui.controls.classList.remove('hidden');if(isTouchDevice)$('mobile-controls').classList.remove('hidden');else renderer.domElement.requestPointerLock();
  notify('Mission started! [F] Flashlight · [R] Wipe Visor · [P] Photo Mode');
 }
 function openHelp(){ui.help.classList.remove('hidden');document.exitPointerLock();}
 function openSources(){$('sources-modal').classList.remove('hidden');document.exitPointerLock();}
 function openLearning(){document.exitPointerLock();$('learning-modal').classList.remove('hidden');}
-function closeLearning(){$('learning-modal').classList.add('hidden');if(started&&!activeStation&&ui.help.classList.contains('hidden')&&ui.win.classList.contains('hidden'))renderer.domElement.requestPointerLock();}
-function closeSources(){$('sources-modal').classList.add('hidden');if(started&&ui.station.classList.contains('hidden')&&ui.help.classList.contains('hidden')&&ui.win.classList.contains('hidden'))renderer.domElement.requestPointerLock();}
-function closeHelp(){ui.help.classList.add('hidden');if(started&&!activeStation&&ui.win.classList.contains('hidden'))renderer.domElement.requestPointerLock();}
+function closeLearning(){$('learning-modal').classList.add('hidden');if(started&&!activeStation&&ui.help.classList.contains('hidden')&&ui.win.classList.contains('hidden')&&!isTouchDevice)renderer.domElement.requestPointerLock();}
+function closeSources(){$('sources-modal').classList.add('hidden');if(started&&ui.station.classList.contains('hidden')&&ui.help.classList.contains('hidden')&&ui.win.classList.contains('hidden')&&!isTouchDevice)renderer.domElement.requestPointerLock();}
+function closeHelp(){ui.help.classList.add('hidden');if(started&&!activeStation&&ui.win.classList.contains('hidden')&&!isTouchDevice)renderer.domElement.requestPointerLock();}
 
 function togglePhotoMode(){
   photoMode = !photoMode;
@@ -646,13 +682,14 @@ function updatePlayer(dt){
  if(keys.KeyS||keys.ArrowDown)move.sub(forward);
  if(keys.KeyD||keys.ArrowRight)move.add(right);
  if(keys.KeyA||keys.ArrowLeft)move.sub(right);
+ if(isTouchDevice && (mobileMoveX || mobileMoveY)){move.addScaledVector(right,mobileMoveX);move.addScaledVector(forward,-mobileMoveY);}
 
  const isMoving = move.lengthSq() > 0;
- const isRunning = keys.ShiftLeft && isMoving && stamina > 5;
+ const isRunning = (keys.ShiftLeft || mobileRun) && isMoving && stamina > 5;
 
  if(isRunning){
   stamina = Math.max(0, stamina - dt * 22);
- } else if(!keys.ShiftLeft && stamina < 100){
+ } else if(!(keys.ShiftLeft || mobileRun) && stamina < 100){
   stamina = Math.min(100, stamina + dt * 14);
  }
 
@@ -871,7 +908,7 @@ function applyStrategy(station,choice){
  updateMission();
  const summary=choice.name+' selected. '+choice.why;
  activeStation=null;ui.station.classList.add('hidden');
- if(activated.size===stations.length)finishMission();else if(started)renderer.domElement.requestPointerLock();
+ if(activated.size===stations.length)finishMission();else if(started&&!isTouchDevice)renderer.domElement.requestPointerLock();
  notify(summary);
 }
 function finishMission(){
@@ -927,7 +964,7 @@ async function loadDonkiData(){
  finally{button.disabled=false;button.textContent='REFRESH DONKI CME DATA';}
 }
 
-function closeStation(){ui.station.classList.add('hidden');activeStation=null;referenceVisible=false;if(started)renderer.domElement.requestPointerLock();}
+function closeStation(){ui.station.classList.add('hidden');activeStation=null;referenceVisible=false;if(started&&!isTouchDevice)renderer.domElement.requestPointerLock();}
 function toggleStationReference(){const panel=$('station-reference');if(!activeStation||!panel||panel.innerHTML.trim()==='')return;referenceVisible=!referenceVisible;panel.classList.toggle('hidden',!referenceVisible);if(referenceVisible){panel.scrollIntoView({behavior:'smooth',block:'nearest'});notify('Scientific information and NASA source links displayed.');}else{notify('NASA reference panel hidden.');}}
 function activateStation(){notify('Choose one of the strategy options to commit this system.');}
 function updateResourceUI(){for(const k of Object.keys(resources)){$(k+'-value').textContent=Math.round(resources[k])+'%';$(k+'-bar').style.width=resources[k]+'%';}}
