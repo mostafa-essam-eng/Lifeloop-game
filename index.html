@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFELOOP | Mars Colony Simulator</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="game"></div>
+
+  <section id="start-screen" class="overlay">
+    <div class="start-card">
+      <p class="eyebrow">MARS COLONY SIMULATOR</p>
+      <h1>LIFE<span>LOOP</span></h1>
+      <p class="intro">Explore LIFELOOP, a proposed sustainable Mars settlement connecting oxygen, water, food, energy, biological systems, and crew safety. This 3D game is an interactive prototype of the wider concept.</p>
+      <div class="start-facts">
+        <span>CONNECTED LIFE-SUPPORT SYSTEMS</span><span>ALGAE BIOREACTOR</span><span>CREW SAFETY</span>
+      </div>
+      <button id="start-btn" class="primary-btn">START MISSION</button>
+      <button id="how-btn" class="text-btn">HOW TO PLAY</button>
+      <button id="sources-btn" class="text-btn">SCIENCE &amp; SOURCES</button>
+      <button id="learning-btn" class="text-btn">EDUCATIONAL VALUE</button>
+      <p class="small-note">Use a computer for the best experience</p>
+    </div>
+  </section>
+
+  <section id="sources-modal" class="modal hidden">
+    <div class="modal-card sources-card">
+      <button class="close-btn" id="close-sources">×</button>
+      <p class="eyebrow">SCIENTIFIC BACKGROUND</p>
+      <h2>Science &amp; Sources</h2>
+      <p>LIFELOOP is a proposed integrated Mars settlement concept. These NASA resources informed the scientific background of its systems. They are references, not live data feeds in this prototype.</p>
+      <div class="source-entry"><h3>NASA MOXIE · Oxygen production</h3><p>NASA reports that MOXIE produced 122 grams of oxygen in total. Its best rate was 12 grams per hour at 98% purity or better. These measured results inspired our oxygen-generation concept.</p><a href="https://science.nasa.gov/mission/mars-2020-perseverance/science-instruments/" target="_blank" rel="noopener noreferrer">View NASA MOXIE results</a> · <a href="https://www.nasa.gov/solar-system/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/" target="_blank" rel="noopener noreferrer">Read NASA’s MOXIE mission report</a></div>
+      <div class="source-entry"><h3>NASA OSDR · Plant research dataset</h3><p>We reference OSD-217, a NASA study of Arabidopsis plants grown aboard the International Space Station. It investigates plant growth and molecular changes in the spaceflight environment. It is relevant to our greenhouse concept, but it is not data about the exact crops shown in LIFELOOP.</p><a href="https://osdr.nasa.gov/bio/repo/data/studies/OSD-217" target="_blank" rel="noopener noreferrer">Open NASA dataset OSD-217</a> · <a href="https://science.nasa.gov/biological-physical/data/osdr/" target="_blank" rel="noopener noreferrer">About NASA OSDR</a></div>
+      <div class="source-entry"><h3>NASA DONKI · Latest space-weather update (13 November 2026)</h3><p>DONKI event 2026-11-13T03:24:00-CME-001 was reported as a C-type coronal mass ejection with an estimated speed of about 525 km/s and a 17° half-angle. The related CCMC notification estimated a minor impact at OSIRIS-APEX and glancing blows at Europa Clipper and Parker Solar Probe. This particular event was not reported as a direct Mars impact. A separate weekly report issued on 11 November described a 9 November CME with a predicted glancing blow at Mars on 13 November. These are space-weather analyses/model estimates, not measurements of radiation at the Martian surface.</p><a href="https://ccmc.gsfc.nasa.gov/DONKI/" target="_blank" rel="noopener noreferrer">Open NASA DONKI</a> · <a href="https://ccmc.gsfc.nasa.gov/DONKI-API/get/CME?startDate=2026-11-13&amp;endDate=2026-11-13" target="_blank" rel="noopener noreferrer">Open CME records for 13 November</a> · <a href="https://ccmc.gsfc.nasa.gov/tools/API/" target="_blank" rel="noopener noreferrer">NASA CCMC API documentation</a> · <a href="https://ccmc.gsfc.nasa.gov/DONKI/guide/" target="_blank" rel="noopener noreferrer">DONKI user guide</a></div>
+      <p class="source-note">Attribution note: the prototype displays NASA-published MOXIE results, a summary of OSDR study OSD-217, and a dated DONKI space-weather snapshot. The Solar Power Hub can also request recent CME records from the live NASA CCMC DONKI API. The dated snapshot is not a live feed; live results depend on API availability. OSDR data files are not imported into the game, and MOXIE is an experiment reference, not a dataset. DONKI model estimates are not direct measurements of radiation at the Mars settlement.</p>
+    </div>
+  </section>
+
+  <section id="learning-modal" class="modal hidden">
+    <div class="modal-card learning-card">
+      <button class="close-btn" id="close-learning">×</button>
+      <p class="eyebrow">LEARNING CENTER</p>
+      <h2>What can you learn?</h2>
+      <p>Explore the colony to discover how science and engineering can help people live in a challenging environment like Mars.</p>
+      <div class="learning-list">
+        <article><b>01 · LIFE SUPPORT</b><p>Learn why people need oxygen, clean water, and reliable food, and how the colony's systems help provide them.</p></article>
+        <article><b>02 · OXYGEN FROM MARS</b><p>Discover how the MOXIE experiment demonstrated oxygen production from carbon dioxide in the Martian atmosphere.</p></article>
+        <article><b>03 · PLANTS &amp; ALGAE</b><p>Explore how photosynthesis uses light, water, and carbon dioxide. Learn about the proposed roles of Spirulina and Chlorella in a biological life-support system.</p></article>
+        <article><b>04 · WATER &amp; SUSTAINABILITY</b><p>Understand why water recovery, recycling, and careful resource use are important when supplies are limited.</p></article>
+        <article><b>05 · ENERGY &amp; SPACE WEATHER</b><p>Learn why solar power matters and why crews monitor solar activity. NASA DONKI records help introduce space-weather events, but they are not direct radiation measurements on Mars.</p></article>
+        <article><b>06 · ENGINEERING CONNECTIONS</b><p>See how oxygen, water, food, energy, and crew safety depend on one another. A change in one system can affect the whole settlement.</p></article>
+      </div>
+      <article class="learning-challenge"><b>07 · DECISIONS &amp; CONSEQUENCES</b><p>Each station offers strategy choices. Saving energy may reduce oxygen production later; intensive recycling can leave less power for the greenhouse. Your final colony condition depends on the choices you make.</p></article>
+      
+    </div>
+  </section>
+
+  <section id="instructions" class="modal hidden">
+    <div class="modal-card">
+      <button class="close-btn" id="close-help">×</button>
+      <p class="eyebrow">MISSION GUIDE</p>
+      <h2>How to survive on Mars</h2>
+      <p>Explore the colony and make five strategic decisions. Balance oxygen, water, and energy while maintaining the food reserve. Every decision advances the mission by one day.</p>
+      <div class="guide-grid">
+        <div><b>W A S D</b><span>Move</span></div>
+        <div><b>MOUSE</b><span>Look around</span></div>
+        <div><b>E × 1</b><span>Open a nearby station</span></div>
+        <div><b>E × 2</b><span>Show its NASA data, scientific results, and source links</span></div>
+        <div><b>LEFT CLICK</b><span>Choose a strategy or plant a crop</span></div>
+        <div><b>ESC</b><span>Release mouse</span></div>
+        <div><b>EXIT</b><span>Return to the main menu</span></div>
+        <div><b>SPACE</b><span>Jump (with realistic Mars gravity)</span></div>
+        <div><b>F</b><span>Toggle helmet flashlight ON/OFF </span></div>
+        <div><b>R</b><span>Wipe dust accumulated on the helmet visor</span></div>
+        <div><b>P</b><span>Toggle Cinematic Photo Mode (Free camera & hide HUD)</span></div>
+      </div>
+      <p class="guide-tip">Walk within range of a station and press E once to open it. Choose one of the two strategies with the left mouse button. Each choice changes resources immediately and advances one mission day, causing ongoing crew needs to consume supplies. Press E a second time to show NASA references and source links. In a greenhouse, left-click a crop to plant it; planting uses water and energy and improves the food reserve. Your starting conditions change between playthroughs. For crew houses, press E near the entrance to enter or leave. EXIT returns to the main menu and resets the mission. The thick regolith roof represents radiation shielding.</p>
+    </div>
+  </section>
+
+  <header id="hud" class="hud hidden">
+    <div class="brand-mark">LIFE<span>LOOP</span><small>MISSION CONTROL</small></div>
+    <div class="resource-row">
+      <div class="resource"><div class="resource-top"><span>OXYGEN</span><b id="oxygen-value">82%</b></div><div class="bar"><i id="oxygen-bar"></i></div></div>
+      <div class="resource"><div class="resource-top"><span>WATER</span><b id="water-value">74%</b></div><div class="bar"><i id="water-bar"></i></div></div>
+      <div class="resource"><div class="resource-top"><span>ENERGY</span><b id="energy-value">90%</b></div><div class="bar"><i id="energy-bar"></i></div></div>
+    </div>
+    <button id="learn-hud-btn" class="hud-learn-btn" title="Open learning center">LEARN</button>
+    <button id="sound-btn" class="hud-btn" title="Toggle sound">♫</button>
+    <button id="exit-btn" class="hud-exit-btn" title="Return to main menu">EXIT</button>
+  </header>
+
+  <aside id="mission-panel" class="mission-panel hidden">
+    <p class="eyebrow">CURRENT OBJECTIVE</p>
+    <h3 id="mission-title">Bring the colony online</h3>
+    <p id="mission-description">Visit all five support systems and stabilize the colony.</p>
+    <div class="mission-progress"><i id="mission-progress"></i></div>
+    <small id="mission-count">DAY 0 · 0 / 5 SYSTEMS ACTIVATED</small>
+    <p id="scenario-label" class="scenario-label">Mission scenario loading…</p>
+    <p id="food-supply-label" class="food-supply-label">Food reserve: 55 units</p>
+  </aside>
+
+  <div id="location-label" class="location-label hidden">MARS · HABITAT ZONE</div>
+  <div id="interaction-prompt" class="interaction-prompt hidden">PRESS <b>E</b> TO INTERACT</div>
+  <div id="controls-hint" class="controls-hint hidden">WASD MOVE <span>•</span> MOUSE LOOK <span>•</span> E INTERACT</div>
+  <div id="notification" class="notification"></div>
+
+  <section id="station-modal" class="modal hidden">
+    <div class="modal-card station-card">
+      <button class="close-btn" id="close-station">×</button>
+      <p class="eyebrow" id="station-category">COLONY SYSTEM</p>
+      <h2 id="station-title">Station</h2>
+      <p id="station-description"></p>
+      <div id="station-info" class="station-info"></div>
+      <div id="decision-panel" class="decision-panel">
+        <h3>CHOOSE YOUR STRATEGY</h3>
+        <p>Every choice uses resources now and can affect later mission days.</p>
+        <div id="decision-options" class="decision-options"></div>
+        <p id="decision-feedback" class="decision-feedback" aria-live="polite"></p>
+      </div>
+      <div id="station-reference" class="station-reference hidden" aria-live="polite"></div>
+      <div id="farm-controls" class="farm-controls hidden">
+        <h3>CHOOSE A CROP TO PLANT</h3>
+        <p>Each seedling will appear in a clay-pellet growing bed inside the greenhouse.</p>
+        <div class="crop-grid">
+          <button class="crop-btn" data-crop="tomato">🍅 <span>Tomato</span></button>
+          <button class="crop-btn" data-crop="potato">🥔 <span>Potato</span></button>
+          <button class="crop-btn" data-crop="lettuce">🥬 <span>Lettuce</span></button>
+          <button class="crop-btn" data-crop="wheat">🌾 <span>Dwarf wheat</span></button>
+          <button class="crop-btn" data-crop="kale">🌿 <span>Kale</span></button>
+        </div>
+        <p id="plant-count" class="plant-count">0 plants placed</p>
+      </div>
+      <button id="activate-btn" class="primary-btn">ACTIVATE SYSTEM</button>
+    </div>
+  </section>
+
+  <section id="win-screen" class="overlay hidden">
+    <div class="start-card">
+      <p class="eyebrow">MISSION COMPLETE</p>
+      <h1>COLONY <span>ONLINE</span></h1>
+      <p class="intro" id="ending-summary">Your crew has a stable starting point on Mars. The next chapter begins now.</p>
+      <p id="ending-details" class="ending-details"></p>
+      <button id="restart-btn" class="primary-btn">PLAY AGAIN · NEW SCENARIO</button>
+    </div>
+  </section>
+
+  <script type="module" src="game.js"></script>
+</body>
+</html>
